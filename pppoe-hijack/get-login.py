@@ -173,6 +173,7 @@ def software_ubuntu(software_list):
     if 'universe' not in content:
         print_save('Adding the "universe" respository')
         subprocess.run(["sudo", "add-apt-repository", "universe"])
+        subprocess.run(["sudo", command, "update"])
     else:
         print_save('The "universe" respository is defined')
 
@@ -181,7 +182,7 @@ def software_ubuntu(software_list):
             subprocess.run(["echo", '"wireshark-common wireshark-common/install-setuid boolean true"', "|", "sudo",  "debconf-set-selections"])
         try:
             print_save("Installing " + software)
-            subprocess.run(["sudo", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install",  software, "--yes"])
+            subprocess.run(["sudo", "DEBIAN_FRONTEND=noninteractive", command, "install",  software, "--yes"])
         except:
             print_save("Failed to install " + software + ". Continuing anyhow")
             pass
@@ -208,7 +209,7 @@ def software_rhel(software_list,rhel_group_software_list):
 def check_software():
     minimal_software_list = [
         "tshark",
-        "ppp",
+        "pppd",
         "pppoe-server",
         "wget",
         "tar"
@@ -218,7 +219,7 @@ def check_software():
     for software in minimal_software_list:
         try:
             subprocess.check_output(["which", software])
-            print_save(software + "is installed")
+            print_save(software + " is installed")
         except:
             # Populate a list of missing software
             missing_software.append(software)
@@ -235,6 +236,8 @@ def check_software():
         
         print("The following missing software is \n")
         print(missing_software, end=" ")
+        print("\n")
+        save_log("Missing software: ")
         save_log(missing_software)
         install_software(distro,missing_software)
 
@@ -244,7 +247,7 @@ def install_software(distro,missing_software):
     additional_ubuntu_software_list = [
         "ppp-dev",
         "pppoeconf",
-        "build-essentials"
+        "build-essential"
     ]
     additional_rhel_software_list = [
         "make",
@@ -387,9 +390,9 @@ def select_isp():
     for operator in operators:
         name = operator[0]
         vlan = operator[1]
-        print("[ " + str[n] + " ] " + name + " (vlan: " + str(vlan) + ")\n")
+        print("[ " + str(n) + " ] " + name + " (vlan: " + str(vlan) + ")\n")
         n = n + 1 
-    print("[ " + str[n] + " ] " + "Enter VLAN manually\n")
+    print("[ " + str(n) + " ] " + "Enter VLAN manually\n")
     print()
     save_log("Asking for VLAN")
     option = ""
@@ -429,7 +432,7 @@ def select_isp():
                 time.sleep(1)
     else:
         vlan = operators[option-1][1]
-    print_save("Selected VLAN " + vlan)
+    print_save("Selected VLAN " + str(vlan))
     return(vlan)
 
 
@@ -489,7 +492,7 @@ def text_message():
     print("-----------------------------------------------------------------\n")
     print("Connect the WAN port of the router to the configured computer network interface\n")
     print("-----------------------------------------------------------------\n")
-    input("Press on ENTER when ready\n")
+    input("Press ENTER when ready\n")
 
 
 # Starts PPPoE Server
@@ -523,9 +526,10 @@ def grab_creds():
     username = ""
     password = ""
     initial = datetime.datetime.now()
+    print_save("Please wait. It may take a while")
+    print_save("Press Ctrl+C twice to abort")
     while username == "" and password == "":
         try:
-            print_save("Please wait. It may take a while")
             archive = open(str(path.home()) + "/" + NAME + "/capture.txt", "r", encoding="utf-8")
             for line in archive:
                 if 'Authenticate-Request' in line:
@@ -564,11 +568,23 @@ if __name__ == '__main__':
         subprocess.run(['sudo', 'python3', *sys.argv])
         sys.exit(0)
 
+    os.chdir(str(path.home()))
+    try:
+        os.mkdir(NAME)
+    except:
+        pass
+
+    try:
+        os.chdir(NAME)
+    except:
+        print("Cannot use workdir " + str(path.home()) + "/" + NAME)
+        sys.exit()
+    
+    ARCHIVE_LOG = str(path.home()) + "/" + NAME + "/" + NAME + ".log"
     # Cleanup
     kill_proceses()
 
-    os.chdir(NAME)
-    ARCHIVE_LOG = str(path.home()) + "/" + NAME + "/" + NAME + ".log"
+    
     save_log('\n')
     save_log('Starting the script')
     os.system("clear")
