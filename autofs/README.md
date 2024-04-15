@@ -1,3 +1,5 @@
+Check for some additional explanation in my blog, at https://run.tournament.org.il/preventing-autofs-from-slowing-down-the-system/
+
 Dynamic autofs script to reduce inaccessible NFS mounts timeout
 During autofs access, if the NFS server is unavailable, connection needs to exceed TCP timeout, which leads to long delays.
 The effect is visible with GUI file browsers, which attempt to follow symlinks.
