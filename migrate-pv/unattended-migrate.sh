@@ -20,7 +20,7 @@ function abort() {
 }
 
 function report() {
-	mail ${EMAIL} -s "Done migrating $NPV to $OPV" < /dev/null
+	mail -s "Done migrating $NPV to $OPV" ${EMAIL} < /dev/null
 }
 
 function parse_list() {
