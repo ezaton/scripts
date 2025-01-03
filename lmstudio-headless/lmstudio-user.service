@@ -1,0 +1,22 @@
+[Unit]
+Description=LM Studio AI Service
+After=xvfb-user.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=%h/lmstudio.env
+WorkingDirectory=%h
+
+ExecStartPre=-/usr/bin/pkill -f lm-studio
+
+ExecStart=/bin/bash -c './${LM_STUDIO} --no-sandbox'
+
+ExecStop=-/usr/bin/pkill -f lm-studio
+
+#Restart=never
+RestartSec=10
+TimeoutStartSec=60
+
+[Install]
+WantedBy=default.target

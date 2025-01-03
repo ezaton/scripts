@@ -1,0 +1,22 @@
+[Unit]
+Description=XVFB Env
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=%h/lmstudio.env
+
+# Cut out the preceding : from $DISPLAY
+ExecStartPre=-/bin/rm -f /tmp/.X${DISPLAY#*:}-lock
+ExecStartPre=-/bin/rm -f /tmp/.X11-unix/X${DISPLAY#*:}
+ExecStart=/bin/bash -c '/usr/bin/Xvfb $DISPLAY -screen 0 1920x1080x24 -ac +extension GLX +render -noreset '
+
+#ExecStop=-/usr/bin/pkill Xvfb
+
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+
+[Install]
+WantedBy=default.target

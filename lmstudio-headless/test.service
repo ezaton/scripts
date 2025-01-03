@@ -1,0 +1,18 @@
+[Unit]
+Description=Test service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+EnvironmentFile=%h/lmstudio.env
+WorkingDirectory=%h
+Type=oneoff
+
+ExecStart=/bin/bash -c 'env > /tmp/myenv.$.txt'
+
+Restart=never
+RestartSec=10
+TimeoutStartSec=60
+
+[Install]
+WantedBy=default.target
