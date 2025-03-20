@@ -28,6 +28,8 @@ import os
 import sys
 import time
 import datetime
+import argparse
+import random
 
 # CONSTANTS
 # 
@@ -67,6 +69,16 @@ operators = (
 ["Orange/Amena", 832],
 ["Adamo", 603]
 )
+
+def print_workflow():
+    print("The process will work as follows:\n\
+        An internet check is to be performed.\n\
+        Then, additional required software will be installed\n\
+        Then, you will be asked to connect the WAN port of the modem to a specific ethernet port\n\
+        Then, the network configuration will take place - VLAN and PPPoE server\n\
+        Then, the details will be obtained from the modem, using the tools installed before\n\
+        After a certain sleep time, if the data obtained correctly, the script will exit\n")
+    input("Press enter to continue\n")
 
 # Terminate all processes
 def kill_proceses():
@@ -197,6 +209,8 @@ def software_rhel(software_list,rhel_group_software_list):
             print_save("Failed to install " + software + ". Continuing anyhow")
             pass
     for software in rhel_group_software_list:
+        if software == "tshark":
+            software = "wireshare-cli"
         try:
             # Handle package groups
             subprocess.run(["sudo", "dnf", "groupinstall",  "-y", software])
@@ -337,6 +351,14 @@ def get_and_compile_pppoe():
 # Configure PPPoE
 def configure_pppoe():
     print_save("Creating /etc/ppp/options")
+    if os.path.exists('/etc/ppp/options'):
+        # Copy the file contents to a new file
+        temp_file = open("/etc/ppp/options", "r", encoding="utf-8")
+        temp_data = temp_file.open()
+        temp_file.close()
+        backup_file = open("/etc/ppp/options"+str(random.randint(1,100)), "w", encoding="utf-8")
+        backup_file.write(temp_data)
+        backup_file.close()
     try:
         archive = open("/etc/ppp/options", "w", encoding="utf-8")
         archive.write(configuration)
@@ -368,6 +390,7 @@ def detect_interface():
     interface = ""
     all_nics = netifaces.interfaces()
     print_save("All detected interfaces are " + str(all_nics))
+
     for item in all_nics:
         if item[:3] == "eth" or item[:2] == "en":
             interface = item
@@ -584,15 +607,22 @@ if __name__ == '__main__':
     # Cleanup
     kill_proceses()
 
-    
+    parser=argparse.ArgumentParser(description="Script to hijack PPPoE details")
+    parser.add_argument("-i", "--interface", help="Network interface")
+    parser.add_argument("-v", "--vlan", help="VLAN")
+    parser.add_argument("-s", "--skip-software", action='store_true', help="Set to skip software check (default: false)")
+    args=parser.parse_args()
     save_log('\n')
     save_log('Starting the script')
     os.system("clear")
     print(VERSION)
     # Check what is installed and add the missing packages
-    check_software()
-    interface = detect_interface()
-    vlan = select_isp()
+    if args.skip_software:
+        check_software()
+    if not args.interface:
+        interface = detect_interface()
+    if not args.vlan:
+        vlan = select_isp()
     interface_vlan = "sniffer." + str(vlan)
     cleanup_interfaces()
     setup_interface(interface,vlan,interface_vlan)
