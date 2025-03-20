@@ -21,7 +21,7 @@ This repository provides a ready-to-use configuration for quickly setting up an 
 
 1. Download the relevant files from this repostiry
    ```
-   https://github.com/ezaton/scripts/tree/main/nginx-ssl-proxy
+   https://github.com/ezaton/scripts/tree/main/docker-compose-nginx-rp-self-signed
    ```
 
 2. Edit the file docker-ssl-proxy/default.conf to point at your docker backend
